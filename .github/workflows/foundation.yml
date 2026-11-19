@@ -1,0 +1,36 @@
+name: Foundation checks
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prepare local environment files
+        run: |
+          test_password="$(openssl rand -hex 24)"
+          echo "::add-mask::$test_password"
+          sed "s/REPLACE_FOR_LOCAL_DEV/$test_password/g" .env.example > .env
+          sed "s/REPLACE_FOR_LOCAL_DEV/$test_password/g" apps/api/.env.example > apps/api/.env
+          cp apps/web/.env.example apps/web/.env.local
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Start disposable PostGIS database
+        run: docker compose up -d --wait postgres
+      - run: pnpm db:migrate
+      - run: pnpm test:integration
+      - name: Stop disposable database
+        if: always()
+        run: if [ -f .env ]; then docker compose down --volumes; fi
