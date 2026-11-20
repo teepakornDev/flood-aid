@@ -44,7 +44,7 @@ For a staff API in another NestJS module, import `AuthModule` and apply `@Requir
 
 ## Frontend
 
-`/admin/login` handles sign-in. `/admin` renders the signed-in staff profile and logout. Protected layouts and pages recheck the session through the server-side helper. The UI shows expired-session, invalid-credentials and network-error states. Next.js proxies only the three staff auth endpoints at the web origin, and NestJS enforces authorization.
+`/admin/login` handles sign-in and lets staff show or hide their password while typing. `/admin` renders the signed-in staff profile and logout. Protected layouts and pages recheck the session through the server-side helper. The UI shows expired-session, invalid-credentials and network-error states. The browser uses the web origin for staff auth and flood moderation requests. NestJS enforces authorization.
 
 ## Acceptance criteria
 

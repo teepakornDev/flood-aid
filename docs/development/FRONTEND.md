@@ -21,6 +21,7 @@ apps/web/src/app/
 │       └── (protected)/
 │           ├── layout.tsx
 │           ├── page.tsx          # Staff profile and sign-out
+│           ├── flood-reports/page.tsx # Review queue and decision history
 │           ├── sos/page.tsx      # Planned
 │           ├── sos/[id]/page.tsx # Planned
 │           └── rescue-teams/page.tsx # Planned
@@ -34,6 +35,7 @@ apps/web/src/
 ├── components/ui/               # Buttons, inputs, alerts, skeletons
 ├── components/map/              # Client-only MapLibre layer
 ├── features/flood-reports/       # ReportForm, FloodMarker, API client
+├── features/flood-moderation/   # Staff review queue and decision history
 ├── features/staff-auth/          # Staff sign-in, sign-out, server session check
 ├── features/sos/                 # SOS form, status timeline, token handling
 ├── features/coordinator/         # Queue, case panel, triage controls

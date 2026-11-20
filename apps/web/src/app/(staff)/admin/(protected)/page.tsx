@@ -25,6 +25,11 @@ export default async function StaffHomePage() {
         </div>
         <StaffSessionControls remainingMs={Math.max(0, Date.parse(session.expiresAt) - Date.now())} />
       </section>
+      {(session.user.role === "ADMIN" || session.user.role === "COORDINATOR") && (
+        <Link href="/admin/flood-reports" className="inline-flex min-h-11 items-center justify-self-start rounded-lg bg-teal-800 px-4 font-semibold text-white hover:bg-teal-900">
+          ตรวจสอบรายงานน้ำท่วม
+        </Link>
+      )}
       <Link href="/map" className="min-h-11 justify-self-start py-2 font-semibold text-teal-800 underline">ดูแผนที่น้ำท่วม</Link>
     </main>
   );

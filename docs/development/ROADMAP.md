@@ -32,6 +32,7 @@
 ## Sprint 3 — Staff auth and coordinator console
 
 - [x] Staff auth, revocable sessions and role guards. Delivered ahead of SOS to support flood report verification.
+- [x] Staff flood report queue, verification, and transactional audit history.
 - [ ] Resource-level guards for private SOS cases and team assignments.
 - [ ] Secure queue, triage updates, status history and private case view.
 - [ ] Audit logs and aged-untriaged case views.

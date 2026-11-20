@@ -34,6 +34,7 @@ To run the apps in separate terminals, use `pnpm --filter @floodaid/api start:de
 | Flood reports map | [localhost:3000/map](http://localhost:3000/map) |
 | New flood report | [localhost:3000/report/new](http://localhost:3000/report/new) |
 | Staff sign-in | [localhost:3000/admin/login](http://localhost:3000/admin/login) |
+| Flood report moderation | [localhost:3000/admin/flood-reports](http://localhost:3000/admin/flood-reports) |
 | API readiness | [127.0.0.1:4000/api/v1/health](http://127.0.0.1:4000/api/v1/health) |
 | Swagger UI | [127.0.0.1:4000/api/v1/docs](http://127.0.0.1:4000/api/v1/docs) |
 | OpenAPI JSON | [127.0.0.1:4000/api/v1/openapi.json](http://127.0.0.1:4000/api/v1/openapi.json) |

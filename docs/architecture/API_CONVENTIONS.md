@@ -28,6 +28,8 @@ Base path: `/api/v1`. JSON fields use `camelCase`. Use RFC 3339/ISO 8601 UTC dat
 | POST | `/admin/sos/:id/assignments` | Coordinator/Admin | Atomic team assignment |
 | GET | `/admin/rescue-teams` | Staff | Team directory |
 | PATCH | `/admin/rescue-teams/:id/status` | Authorized staff | Availability update |
+| GET | `/admin/flood-reports` | Coordinator/Admin | Private review queue with status and cursor filters |
+| GET | `/admin/flood-reports/:id/verification` | Coordinator/Admin | Read the recorded decision |
 | PATCH | `/admin/flood-reports/:id/verification` | Coordinator/Admin | Verify/reject evidence |
 
 > Endpoint catalog is a planned contract, not proof of implementation. Ensure DTO validation, OpenAPI schema, tests and docs agree.
@@ -43,6 +45,10 @@ Anonymous POST returns `201` with a receipt after the insert commits. An identic
 ## Staff session contract
 
 POST `/auth/login` accepts `{ email, password }`, sets a staff session cookie, and returns `{ user: { id, name, role }, expiresAt }`. GET `/auth/me` returns the same shape for a valid session. POST `/auth/logout` revokes the session and clears the cookie. Staff mutations require the configured web origin. Invalid credentials or expired sessions return `401`, denied roles or origins return `403`, and exceeding the login rate limit returns `429`. [Staff auth details](../modules/auth/README.md)
+
+## Staff flood report moderation
+
+The moderation queue and decision endpoints require a Coordinator or Admin session. The mutation accepts a terminal verification status and a compatible reason code. The status change and audit insert commit together. Identical retries by the same actor replay the prior decision. A different decision on a reviewed report returns `409`. [Moderation contract and reason codes](../modules/flood-reports/README.md)
 
 ## Example: create SOS
 

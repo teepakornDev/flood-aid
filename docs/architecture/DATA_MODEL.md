@@ -15,7 +15,7 @@ Use PostgreSQL 17/PostGIS 3.5 and TypeORM **explicit migrations**. DB uses `snak
 | `rescue_teams` | id, name, status, base_location geography nullable, created_at | Team availability; base is not reliable live position |
 | `team_members` | team_id, user_id | Composite PK |
 | `rescue_assignments` | id, sos_id, team_id, status, assigned_at, completed_at | Transactional assignment lifecycle |
-| `audit_logs` (required prior to pilot) | id, actor_id nullable, action, entity_type, entity_id, metadata_redacted jsonb, occurred_at | No tokens, raw private notes or contact data |
+| `audit_logs` | id, actor_id nullable, action, entity_type, entity_id, result, metadata_redacted jsonb, occurred_at, request_id nullable | Staff decision history. Flood verification stores only statuses and a reason code in metadata |
 | `idempotency_records` (required before SOS) | id, scope, key_hash, request_hash, response_ref, status, created_at, expires_at | Atomic with SOS creation; avoid storing raw secret key |
 
 ## Relationships

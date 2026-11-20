@@ -43,4 +43,6 @@ The Flood Reports tests cover validation, submission rate limits, concurrent ret
 
 Staff auth tests use temporary accounts and cover password hashing, cookie/session validation, expiry, logout, role changes, forbidden browser origins and login throttling. The API role probe is defined in the integration test. For browser QA, open `/admin` anonymously, sign in from `/admin/login`, check the staff profile, and verify logout and expired-session redirects.
 
+Flood moderation integration tests cover unauthorized and wrong-role requests, validation, cursor boundaries, idempotent replay, concurrent decisions and a failure after the audit insert. They verify that public map and detail responses reflect the committed status. For browser QA, sign in as a Coordinator or Admin, record a decision on the staff queue and check its history in the corresponding status filter.
+
 Do not state that tests passed unless they were executed; log what ran and any failures. Gate actual SOS pilot additionally on real response staffing, contingency contact and privacy/security approval.
