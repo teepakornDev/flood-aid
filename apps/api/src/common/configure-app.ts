@@ -20,6 +20,7 @@ export function configureApp(app: INestApplication, webOrigin: string): void {
     .setTitle("FloodAid API")
     .setVersion("1.0")
     .addCookieAuth(staffCookieName, { type: "apiKey" }, "staffSession")
+    .addBearerAuth({ type: "http", scheme: "bearer", description: "Private SOS tracking token" }, "sosTracking")
     .build();
   SwaggerModule.setup("docs", app, () => SwaggerModule.createDocument(app, metadata), {
     useGlobalPrefix: true,

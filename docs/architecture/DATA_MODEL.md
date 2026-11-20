@@ -10,13 +10,13 @@ Use PostgreSQL 17/PostGIS 3.5 and TypeORM **explicit migrations**. DB uses `snak
 | `staff_sessions` | token_hash, user_id, expires_at, created_at | SHA-256 token digest. A user can have multiple sessions. Deleting the user revokes all of them |
 | `flood_reports` | id, reporter_id nullable, location geography(Point,4326), severity, road_status, verification_status, description, observed_at, created_at | Anonymous report supported; public sanitized projection only |
 | `report_evidence` | id, report_id, storage_key, media_type, created_at | Private media pointers, optional |
-| `sos_requests` | id, requester_id nullable, tracking_token_hash, location, accuracy_m, assistance_type, people_count, priority, status, description, contact_encrypted, created_at, updated_at | Private only |
+| `sos_requests` | id, requester_id nullable, tracking_token_hash, location, accuracy_m, assistance_type, people_count, priority, status, description_encrypted, contact_encrypted, created_at, updated_at | Private only |
 | `sos_status_history` | id, sos_id, changed_by nullable, old_status, new_status, reason, created_at | Append-only history |
 | `rescue_teams` | id, name, status, base_location geography nullable, created_at | Team availability; base is not reliable live position |
 | `team_members` | team_id, user_id | Composite PK |
 | `rescue_assignments` | id, sos_id, team_id, status, assigned_at, completed_at | Transactional assignment lifecycle |
 | `audit_logs` | id, actor_id nullable, action, entity_type, entity_id, result, metadata_redacted jsonb, occurred_at, request_id nullable | Staff decision history. Flood verification stores only statuses and a reason code in metadata |
-| `idempotency_records` (required before SOS) | id, scope, key_hash, request_hash, response_ref, status, created_at, expires_at | Atomic with SOS creation; avoid storing raw secret key |
+| `idempotency_records` | scope, key_hash, request_hash, response_ref, created_at, expires_at | SOS receipt recovery. Composite primary key on scope and key digest, with a deferred foreign key to the case |
 
 ## Relationships
 
@@ -77,7 +77,7 @@ The flood-report service binds the 24-hour freshness cutoff and a bounded limit 
 ## Critical invariants and migrations
 
 1. New SOS creation, status history and idempotency record are one transaction. Return token only after commit.
-2. Tracking token is 32 random bytes or greater; persist only a SHA-256 digest (use a keyed hash/HMAC if threat model requires it). Don't log or place in URLs.
+2. The 256-bit tracking token is derived from the random idempotency credential and case ID. Persist its SHA-256 digest. Both credentials stay out of URLs and logs.
 3. Assignment operations lock/compare current state atomically; a unique index `(sos_id,team_id)` for active statuses alone is **not** enough to prevent conflicting assignments to different teams. Define a single active primary assignment invariant or explicit multi-team coordination rules before pilot.
 4. Use DB constraints for fields and partial indexes to keep active queues fast.
 5. Never enable TypeORM `synchronize` in shared/staging/production environments. Version all migration changes and back up before risky data migrations.

@@ -45,4 +45,6 @@ Staff auth tests use temporary accounts and cover password hashing, cookie/sessi
 
 Flood moderation integration tests cover unauthorized and wrong-role requests, validation, cursor boundaries, idempotent replay, concurrent decisions and a failure after the audit insert. They verify that public map and detail responses reflect the committed status. For browser QA, sign in as a Coordinator or Admin, record a decision on the staff queue and check its history in the corresponding status filter.
 
+SOS integration tests exercise local-only intake, simultaneous duplicate submissions, conflicting payloads, receipt expiry, encrypted fields, private status and rollback after creating the initial history. For browser QA, deny GPS, enter synthetic coordinates, interrupt the first response after commit, retry the same draft and confirm private tracking with the original receipt.
+
 Do not state that tests passed unless they were executed; log what ran and any failures. Gate actual SOS pilot additionally on real response staffing, contingency contact and privacy/security approval.

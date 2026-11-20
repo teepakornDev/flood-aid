@@ -34,6 +34,8 @@ To run the apps in separate terminals, use `pnpm --filter @floodaid/api start:de
 | Flood reports map | [localhost:3000/map](http://localhost:3000/map) |
 | New flood report | [localhost:3000/report/new](http://localhost:3000/report/new) |
 | Staff sign-in | [localhost:3000/admin/login](http://localhost:3000/admin/login) |
+| Local SOS simulation | [localhost:3000/sos/new](http://localhost:3000/sos/new) |
+| Private SOS tracking | [localhost:3000/sos](http://localhost:3000/sos) |
 | Flood report moderation | [localhost:3000/admin/flood-reports](http://localhost:3000/admin/flood-reports) |
 | API readiness | [127.0.0.1:4000/api/v1/health](http://127.0.0.1:4000/api/v1/health) |
 | Swagger UI | [127.0.0.1:4000/api/v1/docs](http://127.0.0.1:4000/api/v1/docs) |
@@ -62,6 +64,16 @@ pnpm --filter @floodaid/api staff:reset-password
 ```
 
 Enter the existing staff email and confirm a new 15–128-character password. The command updates the existing account and revokes all its sessions. Sign in again with the new password.
+
+## Run an SOS simulation
+
+In `apps/api/.env`, set `SOS_SIMULATION_ENABLED=true` and set `SOS_DATA_KEY` to a private 32-byte base64url key. Generate a local key with:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+```
+
+Apply `pnpm db:migrate`, restart `pnpm dev`, and open [the simulation form](http://localhost:3000/sos/new). Use a loopback API host, a local `WEB_ORIGIN` and synthetic data. Optional `SOS_SIMULATION_REQUEST_LIMIT` sets the submission cap per ten minutes (1–100, default 12). Leave intake disabled outside the local simulation.
 
 ## Environment
 

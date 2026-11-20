@@ -2,7 +2,7 @@
 
 **Status:** In progress · **Priority:** P0 cross-cutting prior to staff pilot · **Dependencies:** DB, staff auth
 
-Flood report moderation uses durable audit records. SOS transitions and rescue assignments will use the audit module as those workflows are implemented.
+Flood report moderation uses durable audit records. SOS intake commits its initial history event with the case and receipt reservation. Staff SOS transitions and rescue assignments will use the audit module as those workflows are implemented.
 
 ## Purpose
 

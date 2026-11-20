@@ -17,8 +17,9 @@ Base path: `/api/v1`. JSON fields use `camelCase`. Use RFC 3339/ISO 8601 UTC dat
 | POST | `/flood-reports` | Public, abuse-protected | Submit reported flood event |
 | GET | `/flood-reports?bbox=minLon,minLat,maxLon,maxLat` | Public | Bounded map data, default freshness filter |
 | GET | `/flood-reports/:id` | Public | Sanitized detail |
-| POST | `/sos` | Public, abuse-protected | Create private SOS; require `Idempotency-Key` |
-| GET | `/sos/:id` | Token-holder/staff | Minimal case tracking; never public |
+| GET | `/sos/intake` | Public | Local simulation availability |
+| POST | `/sos` | Local simulation, abuse-protected | Create private SOS; require secret `Idempotency-Key` |
+| GET | `/sos/:id` | Matching tracking token | Minimal case tracking |
 | POST | `/auth/login` | Public | Staff authentication; rate-limited |
 | POST | `/auth/logout` | Staff | Invalidate session |
 | GET | `/auth/me` | Staff | Read minimal profile and session expiry |
@@ -55,7 +56,7 @@ The moderation queue and decision endpoints require a Coordinator or Admin sessi
 ```http
 POST /api/v1/sos HTTP/1.1
 Content-Type: application/json
-Idempotency-Key: 6d31d937-08a0-4b70-a700-d2a5570b86ff
+Idempotency-Key: <32 random bytes encoded as unpadded base64url>
 ```
 
 ```json
@@ -72,11 +73,11 @@ Idempotency-Key: 6d31d937-08a0-4b70-a700-d2a5570b86ff
   "id": "a73e155c-944c-4a2a-903a-1f169bc0a0b5",
   "status": "SUBMITTED",
   "createdAt": "2026-11-18T08:00:00Z",
-  "trackingToken": "<returned-only-once-secret>"
+  "trackingToken": "<private-tracking-credential>"
 }
 ```
 
-The tracking token is a **secret**; real responses must also set appropriate no-store cache headers. Never display it in public URLs or telemetry. `SUBMITTED` means saved to DB, not dispatched. Use an identical idempotency key and payload for network retries.
+Treat the tracking and idempotency credentials as secrets. SOS responses use `Cache-Control: no-store`. `SUBMITTED` confirms database persistence. Matching retries return the original receipt during a 24-hour recovery window. [SOS recovery contract](../modules/sos/README.md)
 
 ## Error envelope (design target)
 
@@ -96,7 +97,7 @@ Suggested status codes: 200 read/update, 201 created, 400 validation, 401 unauth
 ## Idempotency contract
 
 - Scope key by operation and actor/client namespace; hash key and canonical request body.
-- First request inserts pending key and SOS atomically, then stores a stable result reference.
+- The first request reserves the key and records the case reference in the same transaction as SOS creation and initial history.
 - Retry with matching payload returns same logical case (and handles token retrieval design deliberately); mismatched payload yields `409`.
 - If database operation fails, no success is returned. On client timeout, show status as **unconfirmed** until reconciliation; do not invent successful dispatch.
 - Document TTL, concurrency and security of the secret token on retries before implementing production behavior.

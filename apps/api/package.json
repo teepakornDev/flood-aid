@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "tsc -p tsconfig.test.json && node --test dist-test/test/health.spec.js dist-test/test/flood-reports.spec.js dist-test/test/auth.spec.js",
-    "test:integration": "tsc -p tsconfig.test.json && node --env-file-if-exists=.env --test dist-test/test/database.spec.js dist-test/test/flood-reports.integration.js dist-test/test/auth.integration.js dist-test/test/flood-moderation.integration.js",
+    "test:integration": "tsc -p tsconfig.test.json && node --env-file-if-exists=.env --test dist-test/test/database.spec.js dist-test/test/flood-reports.integration.js dist-test/test/auth.integration.js dist-test/test/flood-moderation.integration.js dist-test/test/sos.integration.js",
     "staff:create": "pnpm run build && node --env-file-if-exists=.env dist/cli/create-staff.js",
     "staff:reset-password": "pnpm run build && node --env-file-if-exists=.env dist/cli/create-staff.js --reset-password",
     "typeorm": "node --env-file-if-exists=.env ./node_modules/typeorm/cli.js",

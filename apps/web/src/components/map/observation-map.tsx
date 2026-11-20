@@ -34,6 +34,7 @@ const offlineStyle: StyleSpecification = {
 
 interface ObservationMapProps {
   center: MapPoint;
+  bundledOnly?: boolean;
   reports?: FloodReportFeature[];
   pin?: MapPoint | null;
   onBoundsChange?: (bounds: FloodBounds) => void;
@@ -42,7 +43,7 @@ interface ObservationMapProps {
 }
 
 export function ObservationMap({
-  center, reports = emptyReports, pin, onBoundsChange, onPick, onSelectReport,
+  center, bundledOnly = false, reports = emptyReports, pin, onBoundsChange, onPick, onSelectReport,
 }: ObservationMapProps) {
   const container = useRef<HTMLDivElement>(null);
   const currentMap = useRef<MapInstance | null>(null);
@@ -57,7 +58,7 @@ export function ObservationMap({
       if (!active || !element) return;
       map = new Map({
         container: element,
-        style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || offlineStyle,
+        style: (!bundledOnly && process.env.NEXT_PUBLIC_MAP_STYLE_URL) || offlineStyle,
         center: [center[0], Math.max(-85, Math.min(85, center[1]))],
         zoom: 10,
         renderWorldCopies: false,
@@ -115,7 +116,7 @@ export function ObservationMap({
       // A failed constructor can leave controls or a canvas in the container.
       element?.replaceChildren();
     };
-  }, [center, onPick, onSelectReport]);
+  }, [center, bundledOnly, onPick, onSelectReport]);
 
   useEffect(() => {
     if (!readyMap || readyMap !== currentMap.current || !onBoundsChange) return;

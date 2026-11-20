@@ -100,3 +100,28 @@ export interface FloodModerationPage {
   reports: FloodModerationReport[];
   nextCursor: string | null;
 }
+
+export type SosAssistanceType = "EVACUATION" | "FOOD" | "WATER" | "MEDICAL";
+export type SosStatus = "SUBMITTED" | "TRIAGED" | "ASSIGNED" | "EN_ROUTE" | "RESOLVED" | "CANCELLED" | "UNABLE_TO_REACH";
+
+export interface CreateSosRequest {
+  location: { latitude: number; longitude: number; accuracyMeters?: number };
+  assistanceType: SosAssistanceType;
+  peopleCount: number;
+  description?: string;
+  contact?: string;
+}
+
+export interface SosReceipt {
+  id: string;
+  status: "SUBMITTED";
+  createdAt: string;
+  trackingToken: string;
+}
+
+export interface SosPrivateStatus {
+  id: string;
+  status: SosStatus;
+  createdAt: string;
+  updatedAt: string;
+}

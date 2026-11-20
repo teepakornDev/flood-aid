@@ -14,6 +14,7 @@ export default async function HomePage() {
         <Link href="/map" className="inline-flex min-h-11 items-center rounded-lg bg-teal-800 px-4 font-semibold text-white hover:bg-teal-900">เปิดแผนที่น้ำท่วม</Link>
         <Link href="/report/new" className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 bg-white px-4 font-semibold hover:bg-slate-100">ส่งรายงานน้ำท่วม</Link>
       </div>
+      <Link href="/sos/new" className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-teal-800 underline">ทดสอบการส่ง SOS</Link>
       <p className="text-sm text-slate-700">
         {isAvailable ? "เชื่อมต่อระบบได้" : "ระบบไม่พร้อมใช้งานในขณะนี้"}
       </p>

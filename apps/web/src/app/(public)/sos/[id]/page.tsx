@@ -1,0 +1,19 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { caseIdPattern } from "../../../../features/sos/sos-api";
+import { SosNotice } from "../../../../features/sos/sos-notice";
+import { SosTracker } from "../../../../features/sos/sos-tracker";
+
+export const metadata: Metadata = { title: "ติดตามคำขอ SOS | FloodAid", referrer: "no-referrer" };
+
+export default async function SosCasePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!caseIdPattern.test(id)) notFound();
+  return (
+    <main className="mx-auto grid w-full max-w-2xl gap-5 px-4 py-7 sm:px-8">
+      <h1 className="text-3xl font-bold tracking-tight">ติดตามคำขอ SOS</h1>
+      <SosNotice />
+      <SosTracker caseId={id} />
+    </main>
+  );
+}

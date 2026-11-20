@@ -22,10 +22,10 @@
 
 ## Sprint 2 — SOS creation and private tracking
 
-- [ ] SOS migration + history + idempotency table, encrypted sensitive fields where used.
-- [ ] Anonymous POST SOS, strong tracking token, private GET status.
-- [ ] Client manual location fallback, submission status and ambiguous network behavior.
-- [ ] Retried/duplicate/conflicting submissions test suite.
+- [x] SOS migration, initial history, idempotency and encrypted notes and contact fields.
+- [x] Anonymous POST SOS in local simulation and token-scoped private GET status.
+- [x] Manual location fallback, committed receipts and safe retries after network ambiguity.
+- [x] Retried, duplicate and conflicting submissions tests.
 
 **Exit:** one submitted case persists atomically; anonymous status tracking is private and reliable under retry.
 

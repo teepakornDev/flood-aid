@@ -13,8 +13,9 @@ apps/web/src/app/
 │   ├── map/page.tsx        # Public flood observations
 │   ├── report/new/page.tsx # Submit flood report
 │   └── sos/
-│       ├── new/page.tsx    # SOS request form
-│       └── [id]/page.tsx   # Private tracking, secret not in URL
+│       ├── page.tsx       # Enter case ID and tracking credential
+│       ├── new/page.tsx   # Local SOS simulation form
+│       └── [id]/page.tsx  # Tracking with the case ID prefilled
 ├── (staff)/
 │   └── admin/
 │       ├── login/page.tsx
