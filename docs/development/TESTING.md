@@ -39,4 +39,8 @@ pnpm test:integration
 
 The foundation HTTP tests cover healthy and unavailable database responses and both Swagger endpoints. Run the database integration test after `pnpm db:migrate`. It checks for pending migrations, PostgreSQL and PostGIS versions, spatial SQL and pgcrypto.
 
+The Flood Reports tests cover validation, submission rate limits, concurrent retries and the public GeoJSON projection. The PostGIS test uses synthetic data and removes its reports after verification. For browser QA, submit a report after denying GPS, retry after losing the first response, and verify the receipt stays the same. Open the map from the receipt and verify the pin, age, and verification badge. Disable WebGL and verify the coordinate search and report list remain usable.
+
+Staff auth tests use temporary accounts and cover password hashing, cookie/session validation, expiry, logout, role changes, forbidden browser origins and login throttling. The API role probe is defined in the integration test. For browser QA, open `/admin` anonymously, sign in from `/admin/login`, check the staff profile, and verify logout and expired-session redirects.
+
 Do not state that tests passed unless they were executed; log what ran and any failures. Gate actual SOS pilot additionally on real response staffing, contingency contact and privacy/security approval.

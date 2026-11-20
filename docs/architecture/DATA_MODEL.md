@@ -6,7 +6,8 @@ Use PostgreSQL 17/PostGIS 3.5 and TypeORM **explicit migrations**. DB uses `snak
 
 | Table | Key fields | Relations/notes |
 |---|---|---|
-| `users` | id, name, email, password_hash, role, created_at | Staff accounts for MVP; no mandatory resident login |
+| `users` | id, name, email, password_hash, role, created_at, updated_at | Staff accounts with unique normalized email |
+| `staff_sessions` | token_hash, user_id, expires_at, created_at | SHA-256 token digest. A user can have multiple sessions. Deleting the user revokes all of them |
 | `flood_reports` | id, reporter_id nullable, location geography(Point,4326), severity, road_status, verification_status, description, observed_at, created_at | Anonymous report supported; public sanitized projection only |
 | `report_evidence` | id, report_id, storage_key, media_type, created_at | Private media pointers, optional |
 | `sos_requests` | id, requester_id nullable, tracking_token_hash, location, accuracy_m, assistance_type, people_count, priority, status, description, contact_encrypted, created_at, updated_at | Private only |
@@ -39,12 +40,10 @@ The foundation TypeORM migration ensures PostGIS and pgcrypto are present. Rever
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Real columns must be created in a versioned TypeORM migration:
--- location geography(Point,4326) NOT NULL
-CREATE INDEX idx_flood_reports_location
-  ON flood_reports USING GIST (location);
-CREATE INDEX idx_sos_requests_location
-  ON sos_requests USING GIST (location);
+-- Public flood points are generated from ST_SnapToGrid(location::geometry, 0.001).
+CREATE INDEX idx_flood_reports_public_location
+  ON flood_reports USING GIST (public_location)
+  WHERE verification_status <> 'REJECTED';
 ```
 
 Coordinates: SQL `ST_MakePoint(longitude, latitude)`. GeoJSON coordinates use `[longitude, latitude]`, while UI forms may be `{ latitude, longitude }`. Validate lat [-90,90], lon [-180,180] and optionally restrict pilot submission to an agreed operating boundary.
@@ -52,18 +51,18 @@ Coordinates: SQL `ST_MakePoint(longitude, latitude)`. GeoJSON coordinates use `[
 ### Public flood map bbox query
 
 ```sql
-SELECT id, severity, road_status, verification_status, observed_at,
-       ST_AsGeoJSON(location::geometry)::json AS geometry
+SELECT id, severity, road_status, verification_status, observed_at, created_at,
+       ST_AsGeoJSON(public_location)::json AS geometry
 FROM flood_reports
-WHERE ST_Intersects(location::geometry,
+WHERE ST_Intersects(public_location,
                     ST_MakeEnvelope($1, $2, $3, $4, 4326))
-  AND observed_at >= NOW() - INTERVAL '24 hours'
+  AND observed_at >= $5
   AND verification_status <> 'REJECTED'
-ORDER BY observed_at DESC
-LIMIT 500;
+ORDER BY observed_at DESC, id
+LIMIT $6;
 ```
 
-Before query: validate bbox ordering, max area and paging; cap results; never interpolate untrusted coordinate strings into SQL. For large datasets, assess using a bounding-box operator and `ST_Intersects` with spatial-index plan. Use `ST_DWithin(geography, geography, meters)` when measuring range; straight-line distance **is not** safe route guidance.
+The flood-report service binds the 24-hour freshness cutoff and a bounded limit with one extra row to detect truncation. Validate bbox ordering and size before querying. For large datasets, inspect the spatial-index plan. Use `ST_DWithin(geography, geography, meters)` for distance checks.
 
 ## Enumerations
 

@@ -18,11 +18,12 @@ apps/web/src/app/
 ├── (staff)/
 │   └── admin/
 │       ├── login/page.tsx
-│       ├── layout.tsx
-│       ├── page.tsx
-│       ├── sos/page.tsx
-│       ├── sos/[id]/page.tsx
-│       └── rescue-teams/page.tsx
+│       └── (protected)/
+│           ├── layout.tsx
+│           ├── page.tsx          # Staff profile and sign-out
+│           ├── sos/page.tsx      # Planned
+│           ├── sos/[id]/page.tsx # Planned
+│           └── rescue-teams/page.tsx # Planned
 └── layout.tsx
 ```
 
@@ -33,6 +34,7 @@ apps/web/src/
 ├── components/ui/               # Buttons, inputs, alerts, skeletons
 ├── components/map/              # Client-only MapLibre layer
 ├── features/flood-reports/       # ReportForm, FloodMarker, API client
+├── features/staff-auth/          # Staff sign-in, sign-out, server session check
 ├── features/sos/                 # SOS form, status timeline, token handling
 ├── features/coordinator/         # Queue, case panel, triage controls
 ├── features/rescue-teams/        # Team selector and availability
@@ -46,6 +48,7 @@ apps/web/src/
 - Staff SOS queue polls at an agreed interval (e.g. 15–30s) while page visible; show last refresh timestamp and failed refresh banner. This is **not** a substitute for staffing/alerting.
 - Client map is dynamically loaded; ensure a text/table fallback when map tiles fail.
 - Use typed API responses and friendly error states. No private SOS in local analytics/error dumps.
+- Each protected staff page checks the session through the server-side staff auth helper before requesting private data. Staff APIs enforce role and resource permissions separately.
 
 ## UI flows
 

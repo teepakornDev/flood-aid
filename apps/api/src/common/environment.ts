@@ -29,3 +29,17 @@ export function readApiConfig() {
     webOrigin,
   };
 }
+
+export function isLocalWebOrigin(url: URL): boolean {
+  return url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
+}
+
+export function allowedWebOrigins(webOrigin: string): string[] {
+  const url = new URL(webOrigin);
+  const origins = [webOrigin];
+  if (isLocalWebOrigin(url)) {
+    url.hostname = url.hostname === "localhost" ? "127.0.0.1" : "localhost";
+    origins.push(url.origin);
+  }
+  return origins;
+}

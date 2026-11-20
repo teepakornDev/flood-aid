@@ -31,12 +31,36 @@ To run the apps in separate terminals, use `pnpm --filter @floodaid/api start:de
 | Surface | Default address |
 |---|---|
 | Web | [localhost:3000](http://localhost:3000) |
+| Flood reports map | [localhost:3000/map](http://localhost:3000/map) |
+| New flood report | [localhost:3000/report/new](http://localhost:3000/report/new) |
+| Staff sign-in | [localhost:3000/admin/login](http://localhost:3000/admin/login) |
 | API readiness | [127.0.0.1:4000/api/v1/health](http://127.0.0.1:4000/api/v1/health) |
 | Swagger UI | [127.0.0.1:4000/api/v1/docs](http://127.0.0.1:4000/api/v1/docs) |
 | OpenAPI JSON | [127.0.0.1:4000/api/v1/openapi.json](http://127.0.0.1:4000/api/v1/openapi.json) |
 | PostgreSQL | `127.0.0.1:5433` |
 
 The web home page checks API readiness on each request. It reports when the API is unreachable or PostGIS is unavailable. Refresh the page after restoring the connection.
+
+## Create a staff account
+
+Apply migrations, then run the account creation command in an interactive terminal.
+
+```bash
+pnpm db:migrate
+pnpm --filter @floodaid/api staff:create
+```
+
+Enter the email, display name, role and password when prompted. Use 15–128 characters for the password. Password entry is hidden. Invalid input prompts again in the same command. If pnpm reports an exit status, check the preceding line for the CLI or build error. With the apps running, open [staff sign-in](http://localhost:3000/admin/login). In environments outside loopback development, set `WEB_ORIGIN` to the HTTPS origin hosting the web app.
+
+## Reset a staff password
+
+An operator with database access can reset an existing account from an interactive terminal.
+
+```bash
+pnpm --filter @floodaid/api staff:reset-password
+```
+
+Enter the existing staff email and confirm a new 15–128-character password. The command updates the existing account and revokes all its sessions. Sign in again with the new password.
 
 ## Environment
 
@@ -48,8 +72,9 @@ Compose reads the root `.env`. The API start, migration, and database integratio
 | Root `.env` | `DATABASE_PORT` | Compose host port mapping, defaulting to `5433` |
 | `apps/api/.env` | `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `DATABASE_NAME` | Required API and TypeORM CLI connection settings |
 | `apps/api/.env` | `API_HOST`, `API_PORT` | API listener, defaulting to `127.0.0.1:4000` |
-| `apps/api/.env` | `WEB_ORIGIN` | Allowed browser origin, defaulting to `http://localhost:3000`. Use a scheme and host with an optional port |
+| `apps/api/.env` | `WEB_ORIGIN` | Allowed browser origin, defaulting to `http://localhost:3000`. Local HTTP also accepts the matching `127.0.0.1` or `localhost` alias on the same port |
 | `apps/web/.env.local` | `NEXT_PUBLIC_API_URL` | API base URL, including `/api/v1`. Treat all `NEXT_PUBLIC_` settings as public |
+| `apps/web/.env.local` | `NEXT_PUBLIC_MAP_STYLE_URL` | Optional approved MapLibre style URL. The default is the bundled Natural Earth basemap |
 
 Keep real credentials out of Git and browser-facing settings. For deployed environments, configure database credentials in the API and migration processes, use a private network for PostgreSQL, and grant extension creation privileges to the provisioning or migration role.
 

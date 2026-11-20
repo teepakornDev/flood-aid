@@ -1,16 +1,19 @@
 # Module: Flood Reports
 
-**Status:** Planned · **Priority:** P0 — first vertical slice · **Dependencies:** PostGIS, API foundation, Map UI; Media optional
+**Status:** In progress · **Priority:** P0 · **Dependencies:** PostGIS and API foundation. Staff verification requires Auth and Audit. Optional photos require Media.
+
+The public reporting and map slice is implemented and verified.
 
 ## Purpose
 Residents submit location-based observations; others view a time-stamped public map. Reports are **crowdsourced observations, not official warnings or safe-route clearance**.
 
-## In scope
+## Public reporting
 
-- Create report anonymously with point, observed time, `severity`, `roadStatus`, optional description and optional evidence image.
+- Create a report anonymously with a point, optional GPS accuracy, observed time, `severity`, `roadStatus`, and an optional private description.
 - Public browse by geographic bbox; filter recent observations and show verification badge.
-- Staff verification: `UNVERIFIED`, `VERIFIED`, `REJECTED`; moderator action recorded.
-- Limit abuse and duplicates; require source/observation freshness on map.
+- Return a receipt only after persistence. Collapse identical submissions and rate-limit requests.
+
+Staff verification and its audit history are planned with Auth and Audit. Evidence uploads are planned with Media.
 
 ## User stories
 
@@ -20,7 +23,7 @@ Residents submit location-based observations; others view a time-stamped public 
 
 ## Data model
 
-`flood_reports`: `id, reporter_id nullable, location geography(Point,4326), severity, road_status, verification_status, description, observed_at, created_at`. GiST index on location; index for observed date/status. `report_evidence`: optional private upload metadata. Never include reporter ID in public DTO.
+`flood_reports` stores the exact submitted `location` as `geography(Point,4326)`, optional `accuracy_m`, a reserved nullable `reporter_id`, statuses, a private description, and separate observation and creation timestamps. A generated `public_location` rounds the point to a 0.001° grid and has a partial GiST index for public results. A partial date index supports recent results. A unique SHA-256 fingerprint makes identical submissions atomic under concurrent retry. A future Auth migration can add a foreign key for `reporter_id`.
 
 Enums: `LOW, MODERATE, HIGH, CRITICAL`; road `UNKNOWN, PASSABLE, IMPASSABLE`; verification `UNVERIFIED, VERIFIED, REJECTED`.
 
@@ -28,10 +31,10 @@ Enums: `LOW, MODERATE, HIGH, CRITICAL`; road `UNKNOWN, PASSABLE, IMPASSABLE`; ve
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
-| POST | `/api/v1/flood-reports` | Public, abuse-protected | Validate coords and timestamps |
-| GET | `/api/v1/flood-reports?bbox=...` | Public | Limit area, freshness and results |
-| GET | `/api/v1/flood-reports/:id` | Public | Sanitized detail only |
-| PATCH | `/api/v1/admin/flood-reports/:id/verification` | Coordinator/Admin | Audit actor/reason |
+| POST | `/api/v1/flood-reports` | Public | Returns `201` with `id` and `createdAt`. Identical submissions return the original receipt |
+| GET | `/api/v1/flood-reports?bbox=west,south,east,north` | Public | Returns a GeoJSON FeatureCollection. Optional `limit` defaults to 200 and is capped at 500 |
+| GET | `/api/v1/flood-reports/:id` | Public | Returns one public GeoJSON Feature. Missing, rejected and expired reports return `404` |
+| PATCH | `/api/v1/admin/flood-reports/:id/verification` | Coordinator/Admin | Planned with actor/reason audit |
 
 Example POST:
 
@@ -45,28 +48,30 @@ Example POST:
 }
 ```
 
-Public GET returns **GeoJSON FeatureCollection** or a documented list of typed GeoJSON features (pick one, update OpenAPI and frontend together). Feature properties: `id`, severity, road status, verification status and `observedAt`; **no names, contacts or SOS information**.
+GeoJSON coordinates use `[longitude, latitude]` from the public grid. Properties include `id`, `severity`, `roadStatus`, `verificationStatus`, `observedAt`, `createdAt`, and `source: "COMMUNITY"`. The collection also includes `generatedAt` and `limitReached`, which indicates additional results. Results are ordered by latest observation. The public endpoints exclude descriptions, exact coordinates, GPS accuracy, reporter IDs, and SOS data.
 
 ## Frontend
 
-- `/map`: MapLibre map and report panel; bbox-based fetch with sensible debounce; markers distinguish `VERIFIED`/`UNVERIFIED`; show stale info visibly.
-- `/report/new`: phone-friendly form, GPS permission/request and manual pin fallback, review before send, loading/success/failure states.
-- Avoid exposing submitted image EXIF/private metadata; do not claim report road condition is verified.
+- `/map` uses MapLibre GL JS (as selected in the architecture), debounces viewport queries by 300 ms and refreshes once a minute while visible. Markers and the accompanying list distinguish verified and unverified reports. The list shows observation time, age and a stale label after six hours. Coordinate search and the list work when WebGL or tiles fail.
+- `/report/new` supports GPS, map pin selection, and keyboard-accessible coordinate fields. It shows a review and waits for a server receipt. A timeout keeps the same draft for retry and shows that confirmation is unavailable.
+- The default map centers near Hat Yai and uses a bundled Natural Earth basemap with approximate Southeast Asia country boundaries plus major roads and lakes in and around Thailand. It uses 1:50m Admin 0 Countries, 1:10m Roads, and 1:10m Lakes from the Natural Earth v5.1.2 data release. Set `NEXT_PUBLIC_MAP_STYLE_URL` for approved street-level tiles. [Natural Earth source](https://github.com/nvkelso/natural-earth-vector/tree/v5.1.2/geojson) · [Terms of use](https://www.naturalearthdata.com/about/terms-of-use/)
 
 ## Business rules
 
-- Reject invalid latitude/longitude, excessive description length, observed future times beyond allowed clock skew and excessive bbox or result counts.
-- Retain/report `observedAt` separately from `createdAt`. Old reports should be visually de-emphasized or removed according to stated age policy.
-- Protect public endpoint from spam and moderate offensive/false content; staff verification actions must be audited.
+- Validate longitude/latitude, optional GPS accuracy from 0 to 100,000 meters, timezone-qualified observation time, and description length up to 500 characters. Allow five minutes of future clock skew.
+- Public queries include the past 24 hours, excluding rejected rows. The bbox must be ordered, in coordinate range, and at most 2° per side. Bbox and detail use the same rounded point.
+- Identical point, observation time, severity, road status and trimmed description return the same receipt. Optional GPS accuracy does not affect retry matching.
+- The API allows 12 submission attempts per connection IP per ten minutes in one instance and returns `429` with `Retry-After` when exceeded. Proxy deployments need a trusted forwarded-IP and shared rate-limiting configuration before public intake.
+- The frontend labels road conditions as reported by the community. Staff verification actions require auditing.
 
 ## Acceptance criteria
 
-- [ ] A valid report creates a record with spatial point and returns 201.
-- [ ] A report outside bbox does not appear; invalid bbox gets 400.
-- [ ] Public GeoJSON includes no private reporter metadata; rejected records are excluded by default.
-- [ ] Map shows report age and verification; GPS denial permits manual pin.
-- [ ] No report is labeled an official warning or guaranteed passable route.
-- [ ] Input validation, service tests and bbox integration test pass.
+- [x] A valid report creates a record with spatial point and returns 201.
+- [x] A report outside bbox does not appear. Invalid bbox gets 400.
+- [x] Public GeoJSON includes no private reporter metadata and excludes rejected records.
+- [x] The map shows report age and verification. GPS denial permits manual pin selection.
+- [x] The map labels observations and road conditions as community reports.
+- [x] Input validation, service tests and bbox integration test pass.
 
 ## Implementation order
 

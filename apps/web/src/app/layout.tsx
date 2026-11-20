@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "FloodAid",
-  description: "สถานะการเชื่อมต่อระบบ FloodAid",
+  description: "ส่งรายงานและดูแผนที่น้ำท่วมจากการสังเกตของชุมชน",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

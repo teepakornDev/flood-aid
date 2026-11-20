@@ -21,6 +21,7 @@ Base path: `/api/v1`. JSON fields use `camelCase`. Use RFC 3339/ISO 8601 UTC dat
 | GET | `/sos/:id` | Token-holder/staff | Minimal case tracking; never public |
 | POST | `/auth/login` | Public | Staff authentication; rate-limited |
 | POST | `/auth/logout` | Staff | Invalidate session |
+| GET | `/auth/me` | Staff | Read minimal profile and session expiry |
 | GET | `/admin/sos` | Coordinator/Admin | Private queue, pagination/filter |
 | PATCH | `/admin/sos/:id/triage` | Coordinator/Admin | Assign priority and record actor/reason |
 | PATCH | `/admin/sos/:id/status` | Authorized staff | Valid state transition + audit |
@@ -34,6 +35,14 @@ Base path: `/api/v1`. JSON fields use `camelCase`. Use RFC 3339/ISO 8601 UTC dat
 ## Foundation health contract
 
 `GET /api/v1/health` returns HTTP `200` with `{"status":"ok"}` when the API can query PostGIS. Once the API is running, a failed PostGIS query returns HTTP `503` with error code `SERVICE_UNAVAILABLE`, a generic message, and a server-generated request ID. Both responses set `Cache-Control: no-store` and `X-Request-Id`. Swagger UI is served at `/api/v1/docs` and the schema at `/api/v1/openapi.json`.
+
+## Flood report contract
+
+Anonymous POST returns `201` with a receipt after the insert commits. An identical retry returns the original receipt. GET list requires `bbox=west,south,east,north` with a maximum span of 2° per axis. Optional `limit` ranges from 1 to 500 (default 200). The list returns a GeoJSON FeatureCollection with `generatedAt` and `limitReached`. GET detail returns one GeoJSON Feature or `404`. Both read endpoints exclude rejected reports and observations older than 24 hours, and project only approximate points and public observation metadata. [Field and rate-limit details](../modules/flood-reports/README.md)
+
+## Staff session contract
+
+POST `/auth/login` accepts `{ email, password }`, sets a staff session cookie, and returns `{ user: { id, name, role }, expiresAt }`. GET `/auth/me` returns the same shape for a valid session. POST `/auth/logout` revokes the session and clears the cookie. Staff mutations require the configured web origin. Invalid credentials or expired sessions return `401`, denied roles or origins return `403`, and exceeding the login rate limit returns `429`. [Staff auth details](../modules/auth/README.md)
 
 ## Example: create SOS
 

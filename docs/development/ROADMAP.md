@@ -13,10 +13,10 @@
 
 ## Sprint 1 — Flood report vertical slice
 
-- [ ] Indexed `flood_reports` migration, DTO validation, PostGIS bbox query.
-- [ ] Anonymous submission endpoint, sanitized public GeoJSON endpoint.
-- [ ] `/report/new` and `/map` mobile pages; data freshness and verification state.
-- [ ] Unit/integration tests and abuse controls.
+- [x] Indexed `flood_reports` migration, DTO validation, PostGIS bbox query.
+- [x] Anonymous submission endpoint and sanitized public GeoJSON endpoints.
+- [x] `/report/new` and `/map` mobile pages with data freshness and verification state.
+- [x] HTTP and PostGIS integration tests, duplicate handling, and submission rate limit.
 
 **Exit:** real report can be submitted, stored, located and displayed publicly without private metadata.
 
@@ -31,7 +31,8 @@
 
 ## Sprint 3 — Staff auth and coordinator console
 
-- [ ] Staff auth/session, roles and resource-level guards.
+- [x] Staff auth, revocable sessions and role guards. Delivered ahead of SOS to support flood report verification.
+- [ ] Resource-level guards for private SOS cases and team assignments.
 - [ ] Secure queue, triage updates, status history and private case view.
 - [ ] Audit logs and aged-untriaged case views.
 - [ ] Security/integration tests for denial and invalid transitions.
